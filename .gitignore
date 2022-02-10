@@ -1,0 +1,6 @@
+logs
+docker/redis
+*.log
+.env
+
+.idea/

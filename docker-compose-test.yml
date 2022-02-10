@@ -1,0 +1,48 @@
+version: '3.7'
+
+services:
+    app:
+        build: .
+        container_name: DigitalPower_test
+        environment:
+            - PYTHONUNBUFFERED=True
+        depends_on:
+            - redis
+            - postgres
+        ports:
+            - 8000:8000
+        volumes:
+            - ./src:/DigitalPower_test/src
+            - ./.env:/DigitalPower_test/.env
+            - ./setup.cfg:/DigitalPower_test/setup.cfg
+        links:
+            - "postgres:${PG_HOST}"
+            - redis
+        command: bash -c "echo ================================= flake8 test ==================================;
+                 flake8 src;
+                 echo;
+                 echo;
+                 echo;
+                 echo;
+                 pytest --asyncio-mode=strict"
+
+    redis:
+        image: redis
+        container_name: redis
+        restart: unless-stopped
+        volumes:
+            - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+            - ./docker_data/test_logs:/log
+        ports:
+            - 6379:6379
+        command: redis-server
+
+    postgres:
+        image: postgres:14.1
+        container_name: postgres
+        ports:
+            - ${PG_PORT}:${PG_PORT}
+        environment:
+            POSTGRES_USER: ${PG_USER}
+            POSTGRES_PASSWORD: ${PG_PASS}
+            POSTGRES_DB: ${PG_DB_NAME}

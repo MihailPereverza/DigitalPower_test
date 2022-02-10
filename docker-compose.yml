@@ -1,0 +1,63 @@
+version: '3.7'
+
+services:
+    app:
+        build: .
+        container_name: DigitalPower_test
+        environment:
+            - PYTHONUNBUFFERED=True
+        depends_on:
+            - redis
+            - postgres
+            - emoticon
+        restart: on-failure
+        ports:
+            - 8000:8000
+        volumes:
+            - .:/DigitalPower_test
+        links:
+            - "postgres:${PG_HOST}"
+            - redis
+            - emoticon
+        command: python -m src.workshop.__main__.py
+
+    redis:
+        image: redis
+        container_name: redis
+        restart: unless-stopped
+        volumes:
+            - ./docker_data/redis/data:/data
+            - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+            - ./docker_data/logs:/log
+        ports:
+            - 6379:6379
+        command: redis-server /usr/local/etc/redis/redis.conf
+
+    postgres:
+        image: postgres:14.1
+        container_name: postgres
+        ports:
+            - ${PG_PORT}:${PG_PORT}
+        volumes:
+            - ./docker_data/postgres/data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: ${PG_USER}
+            POSTGRES_PASSWORD: ${PG_PASS}
+            POSTGRES_DB: ${PG_DB_NAME}
+
+    emoticon:
+        image: amouat/dnmonster
+        container_name: emoticon_service
+        ports:
+            -   8080:8080
+
+    nginx:
+        image: nginx
+        depends_on:
+            -   app
+        ports:
+            -   80:80
+        volumes:
+            -   ./docker/nginx/conf.d/nginx.conf:/etc/nginx/nginx.conf
+        links:
+            -   app
