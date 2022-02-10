@@ -10,7 +10,6 @@ aioredis~=2.0.1
 aiohttp~=3.8.1
 pydantic[dotenv]
 pytest~=6.2.5
-httpx~=0.22.0
 pytest-asyncio~=0.17.2
 ormar~=0.10.24
 databases~=0.5.4

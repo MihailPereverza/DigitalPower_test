@@ -2,6 +2,7 @@ import logging
 import os.path
 import sys
 
+from sqlalchemy.exc import OperationalError
 from fastapi import FastAPI
 
 from src.workshop.constants import LOG_DIR
@@ -36,7 +37,13 @@ app.include_router(router)
 
 @app.on_event("startup")
 async def startup() -> None:
-    metadata.create_all(engine)
+    while True:
+        try:
+            metadata.create_all(engine)
+            break
+        except OperationalError:
+            continue
+
     if not database.is_connected:
         await database.connect()
 
